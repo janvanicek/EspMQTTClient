@@ -17,7 +17,7 @@
 
 #else // for ESP32
 
-  #include <WiFiClient.h>
+  #include "WiFiClientSecure/WiFiClientSecure.h"
   #include <WebServer.h>
   #include <ESPmDNS.h>
   #include "ESP32HTTPUpdateServer.h"
@@ -45,7 +45,7 @@ private:
   unsigned int _wifiReconnectionAttemptDelay;
   const char* _wifiSsid;
   const char* _wifiPassword;
-  WiFiClient _wifiClient;
+  WiFiClientSecure _wifiClientSecure;
 
   // MQTT related
   bool _mqttConnected;
@@ -91,6 +91,9 @@ private:
   bool _drasticResetOnConnectionFailures;
   unsigned int _connectionEstablishedCount; // Incremented before each _connectionEstablishedCallback call
 
+  // SSL
+  const char* _caCert;
+
 public:
   // Wifi + MQTT with no MQTT authentification
   EspMQTTClient(
@@ -133,6 +136,9 @@ public:
   void enableMQTTPersistence(); // Tell the broker to establish a persistent connection. Disabled by default. Must be called before the first loop() execution
   void enableLastWillMessage(const char* topic, const char* message, const bool retain = false); // Must be set before the first loop() call.
   void enableDrasticResetOnConnectionFailures() {_drasticResetOnConnectionFailures = true;} // Can be usefull in special cases where the ESP board hang and need resetting (#59)
+
+  // SSL
+  void setCertificate(const char* cert); // Set CA certificate to TLS connection.
 
   // Main loop, to call at each sketch loop()
   void loop();

@@ -48,7 +48,7 @@ EspMQTTClient::EspMQTTClient(
   _mqttPassword(mqttPassword),
   _mqttClientName(mqttClientName),
   _mqttServerPort(mqttServerPort),
-  _mqttClient(mqttServerIp, mqttServerPort, _wifiClient)
+  _mqttClient(mqttServerIp, mqttServerPort, _wifiClientSecure)
 {
   // WiFi connection
   _handleWiFi = (wifiSsid != NULL);
@@ -79,6 +79,9 @@ EspMQTTClient::EspMQTTClient(
   _drasticResetOnConnectionFailures = false;
   _connectionEstablishedCallback = onConnectionEstablished;
   _connectionEstablishedCount = 0;
+
+  // SSL
+  _caCert = NULL;
 }
 
 EspMQTTClient::~EspMQTTClient()
@@ -95,6 +98,11 @@ EspMQTTClient::~EspMQTTClient()
 void EspMQTTClient::enableDebuggingMessages(const bool enabled)
 {
   _enableSerialLogs = enabled;
+}
+
+void EspMQTTClient::setCertificate(const char* cert)
+{
+  _caCert = cert;
 }
 
 void EspMQTTClient::enableHTTPWebUpdater(const char* username, const char* password, const char* address)
@@ -332,6 +340,10 @@ void EspMQTTClient::onWiFiConnectionEstablished()
 {
     if (_enableSerialLogs)
       Serial.printf("WiFi: Connected (%fs), ip : %s \n", millis()/1000.0, WiFi.localIP().toString().c_str());
+
+    if (_caCert) {
+        _wifiClientSecure.setCACert(_caCert);
+    }
 
     // Config of web updater
     if (_httpServer != NULL)
